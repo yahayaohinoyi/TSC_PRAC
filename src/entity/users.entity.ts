@@ -5,12 +5,16 @@ import { User } from '@interfaces/users.interface';
 @Entity()
 @Unique(['email'])
 export class UserEntity implements User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   @IsNotEmpty()
   email: string;
+
+  @Column()
+  @IsNotEmpty()
+  name: string;
 
   @Column()
   @IsNotEmpty()

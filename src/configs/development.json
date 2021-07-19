@@ -4,7 +4,7 @@
         "host": "localhost",
         "user": "root",
         "password": "password",
-        "database": "typeorm"
+        "database": "postgres_prac"
     },
     "secretKey": "secretKey",
     "log": {
