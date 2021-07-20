@@ -11,7 +11,7 @@ export const dbConnection: ConnectionOptions = {
   username: user,
   password: password,
   database: database,
-  synchronize: true,
+  synchronize: false,
   logging: false,
   entities: [path.join(__dirname, '../**/*.entity{.ts,.js}')],
   migrations: [path.join(__dirname, '../**/*.migration{.ts,.js}')],

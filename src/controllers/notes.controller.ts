@@ -52,8 +52,7 @@ class NotesController {
 
   public deleteNote = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const noteId = req.params.id;
-      console.log(noteId, 'heree');
+      const noteId = Number(req.params.id);
       const deleteNoteData: Note = await this.noteService.deleteNote(noteId);
 
       res.status(200).json({ data: deleteNoteData, message: 'deleted' });

@@ -1,10 +1,11 @@
 import { IsNotEmpty } from 'class-validator';
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
 import { Note } from '@interfaces/notes.interface';
+import { UserEntity } from '@entity/users.entity';
 
 @Entity()
 export class NoteEntity implements Note {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
@@ -14,6 +15,9 @@ export class NoteEntity implements Note {
   @Column()
   @IsNotEmpty()
   noteLink: string;
+
+  @ManyToOne(() => UserEntity, user => user.notes)
+  createdBy: UserEntity;
 
   @Column({ type: Boolean, default: false })
   isSharable: boolean;

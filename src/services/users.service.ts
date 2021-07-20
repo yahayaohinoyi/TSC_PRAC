@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { getRepository } from 'typeorm';
+import { getRepository, getConnection } from 'typeorm';
 import { CreateUserDto } from '@dtos/users.dto';
 import { UserEntity } from '@entity/users.entity';
 import { HttpException } from '@exceptions/HttpException';
@@ -9,17 +9,20 @@ import { isEmpty } from '@utils/util';
 class UserService {
   public users = UserEntity;
 
-  public async findAllUser(): Promise<User[]> {
-    const userRepository = getRepository(this.users);
-    const users: User[] = await userRepository.find();
+  public async findAllUser(): Promise<any> {
+    // const userRepository = getRepository(this.users);
+    // const users: User[] = await userRepository.find();
+    const conn = getConnection();
+    const users = await conn.getRepository('UserEntity').createQueryBuilder('user').leftJoinAndSelect('user.notes', 'note').getMany();
+    console.log(users);
     return users;
   }
 
-  public async findUserById(userId: string): Promise<User> {
+  public async findUserById(userId: number): Promise<User> {
     if (isEmpty(userId)) throw new HttpException(400, "You're not userId");
 
     const userRepository = getRepository(this.users);
-    const findUser: User = await userRepository.findOne({ where: { id: userId } });
+    const findUser: UserEntity = await userRepository.findOne({ where: { id: userId } });
     if (!findUser) throw new HttpException(409, "You're not user");
 
     return findUser;
@@ -38,7 +41,7 @@ class UserService {
     return createUserData;
   }
 
-  public async updateUser(userId: string, userData: CreateUserDto): Promise<User> {
+  public async updateUser(userId: number, userData: CreateUserDto): Promise<User> {
     if (isEmpty(userData)) throw new HttpException(400, "You're not userData");
 
     const userRepository = getRepository(this.users);
@@ -52,7 +55,7 @@ class UserService {
     return updateUser;
   }
 
-  public async deleteUser(userId: string): Promise<User> {
+  public async deleteUser(userId: number): Promise<User> {
     if (isEmpty(userId)) throw new HttpException(400, "You're not userId");
 
     const userRepository = getRepository(this.users);
