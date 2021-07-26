@@ -14,7 +14,7 @@ class UserService {
     // const users: User[] = await userRepository.find();
     const conn = getConnection();
     const users = await conn.getRepository('UserEntity').createQueryBuilder('user').leftJoinAndSelect('user.notes', 'note').getMany();
-    console.log(users);
+    // console.log(users);
     return users;
   }
 
@@ -22,7 +22,7 @@ class UserService {
     if (isEmpty(userId)) throw new HttpException(400, "You're not userId");
 
     const userRepository = getRepository(this.users);
-    const findUser: UserEntity = await userRepository.findOne({ where: { id: userId } });
+    const findUser: User = await userRepository.findOne({ where: { id: userId } });
     if (!findUser) throw new HttpException(409, "You're not user");
 
     return findUser;
