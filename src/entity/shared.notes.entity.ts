@@ -17,6 +17,10 @@ export class SharedNoteEntity implements ShareNote {
   @JoinColumn({ name: 'note_id' })
   note: NoteEntity;
 
+  @ManyToOne(() => UserEntity)
+  @JoinColumn({ name: 'shared_with' })
+  sharedWith: UserEntity;
+
   @Column()
   @CreateDateColumn()
   createdAt: Date;

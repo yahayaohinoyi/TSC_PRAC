@@ -1,3 +1,5 @@
+import { ShareNoteDto } from './../dtos/share.note.dto';
+import { SharedNoteEntity } from 'entity/shared.notes.entity';
 import { NextFunction, Request, Response } from 'express';
 import { CreateNoteDto } from '@dtos/notes.dto';
 import { Note } from '@interfaces/notes.interface';
@@ -9,6 +11,17 @@ class NotesController {
   public getNotes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const findAllNotesData: Note[] = await this.noteService.findAllNotes();
+
+      res.status(200).json({ data: findAllNotesData, message: 'findAll' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getNotesSharedWithMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const noteData: ShareNoteDto = req.body;
+      const findAllNotesData = await this.noteService.findAllNotesSharedWithMe(Number(noteData.userId));
 
       res.status(200).json({ data: findAllNotesData, message: 'findAll' });
     } catch (error) {
@@ -33,6 +46,21 @@ class NotesController {
       const createNoteData: Note = await this.noteService.createNote(noteData);
 
       res.status(201).json({ data: createNoteData, message: 'created' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public shareNote = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const noteData: ShareNoteDto = req.body;
+      const shareNoteData: SharedNoteEntity = await this.noteService.shareNote(
+        Number(noteData.userId),
+        Number(noteData.noteId),
+        Number(noteData.sharedWith),
+      );
+
+      res.status(201).json({ data: shareNoteData, message: 'created' });
     } catch (error) {
       next(error);
     }

@@ -1,3 +1,5 @@
+import { ShareNote } from '@interfaces/share.notes';
+import { SharedNoteEntity } from '@entity/shared.notes.entity';
 import { getRepository, getConnection } from 'typeorm';
 import { CreateNoteDto } from '@dtos/notes.dto';
 import { NoteEntity } from '@entity/notes.entity';
@@ -11,13 +13,30 @@ class UserService {
   public notes = NoteEntity;
   public users = UserEntity;
 
-  public async findAllNotes(): Promise<Note[]> {
+  public async findAllNotes(): Promise<NoteEntity[]> {
     // const createNoteData = getRepository(this.notes);
     // const notes: Note[] = await createNoteData.find();
     const conn = getConnection();
     const notes = await conn.getRepository(NoteEntity).createQueryBuilder('notes').leftJoinAndSelect('notes.createdBy', 'user').getMany();
     return notes;
   }
+
+  public async findAllNotesSharedWithMe(userId: number): Promise<SharedNoteEntity[]> {
+    const conn = getConnection();
+    const notes = await conn
+      .getRepository(SharedNoteEntity)
+      .createQueryBuilder('sharedNotes')
+      .leftJoinAndSelect('sharedNotes.note', 'note')
+      .leftJoin('sharedNotes.sharedWith', 'sharedWith')
+      .where('sharedWith.id = :id', { id: userId })
+      .getMany();
+    return notes;
+  }
+
+  // public async findAllNotesSharedWithMe(): Promise<NoteEntity[]> {
+  //   const conn = getConnection();
+  //   const notesSharedWithMe = await conn.getRepository(NoteEntity).createQueryBuilder('notes').leftJoinAndSelect()
+  // }
 
   public async findNoteById(noteId: string): Promise<Note> {
     if (isEmpty(noteId)) throw new HttpException(400, 'Enter an Id');
@@ -48,12 +67,44 @@ class UserService {
 
     const noteRepository = getRepository(this.notes);
     const findNote: Note = await noteRepository.findOne({ where: { id: noteId } });
-    if (!findNote) throw new HttpException(409, "You're Request user");
+    if (!findNote) throw new HttpException(409, "can't find note");
 
     await noteRepository.update(noteId, { ...noteData });
 
     const updateNote: Note = await noteRepository.findOne({ where: { id: noteId } });
     return updateNote;
+  }
+
+  public async shareNote(userId: number, noteId: number, shareWith: number): Promise<SharedNoteEntity> {
+    const noteRepository = getRepository(this.notes);
+
+    const findNote: NoteEntity = await noteRepository
+      .createQueryBuilder('note')
+      .leftJoinAndSelect('note.createdBy', 'user')
+      .where('note.id = :id', { id: noteId })
+      .getOne();
+
+    if (!findNote) throw new HttpException(409, "can't find note");
+
+    if (!findNote.isSharable) {
+      throw new HttpException(409, 'This note is not sharable');
+    }
+
+    if (findNote.createdBy.id !== userId) {
+      throw new HttpException(409, "You can't share a note you don't own");
+    }
+
+    const user: UserEntity = await getRepository(this.users).findOne(userId);
+
+    const sharedWith: UserEntity = await getRepository(this.users).findOne(shareWith);
+
+    let sharedNote = new SharedNoteEntity();
+    sharedNote.user = user;
+    sharedNote.note = findNote;
+    sharedNote.sharedWith = sharedWith;
+
+    sharedNote = await getRepository(SharedNoteEntity).save(sharedNote);
+    return sharedNote;
   }
 
   public async deleteNote(noteId: number): Promise<Note> {

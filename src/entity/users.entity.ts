@@ -2,9 +2,9 @@ import { IsNotEmpty } from 'class-validator';
 import { Entity, PrimaryGeneratedColumn, Column, Unique, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { User } from '@interfaces/users.interface';
 import { NoteEntity } from '@entity/notes.entity';
-import { SharedNoteEntity } from '@entity/shared.notes';
+import { SharedNoteEntity } from '@/entity/shared.notes.entity';
 
-@Entity('user')
+@Entity()
 @Unique(['email'])
 export class UserEntity implements User {
   @PrimaryGeneratedColumn()
