@@ -33,6 +33,18 @@ class UserService {
     return notes;
   }
 
+  public async findAllNotesShared(userId: number): Promise<SharedNoteEntity[]> {
+    const conn = getConnection();
+    const notes = await conn
+      .getRepository(SharedNoteEntity)
+      .createQueryBuilder('sharedNotes')
+      .leftJoinAndSelect('sharedNotes.note', 'note')
+      .leftJoin('note.createdBy', 'user')
+      .where('user.id = :id', { id: userId })
+      .getMany();
+    return notes;
+  }
+
   // public async findAllNotesSharedWithMe(): Promise<NoteEntity[]> {
   //   const conn = getConnection();
   //   const notesSharedWithMe = await conn.getRepository(NoteEntity).createQueryBuilder('notes').leftJoinAndSelect()
@@ -55,7 +67,7 @@ class UserService {
     const findNote: Note = await noteRepository.findOne({ where: { noteLink: noteData.noteLink } });
     const findOne: User = await userRepository.findOne({ where: { id: 1 } });
     if (findNote) throw new HttpException(409, `NoteLink ${noteData.noteLink} already exists`);
-    if (!findOne) throw new HttpException(409, `User ${1} doesnt already exists`);
+    if (!findOne) throw new HttpException(409, `User ${1} doesn't already exists`);
 
     const createNoteData: Note = await noteRepository.save({ ...noteData, createdBy: findOne });
 
@@ -64,8 +76,8 @@ class UserService {
 
   public async updateNote(noteId: string, noteData: CreateNoteDto): Promise<Note> {
     if (isEmpty(noteData)) throw new HttpException(400, 'Bad Request');
-
     const noteRepository = getRepository(this.notes);
+
     const findNote: Note = await noteRepository.findOne({ where: { id: noteId } });
     if (!findNote) throw new HttpException(409, "can't find note");
 
@@ -91,7 +103,9 @@ class UserService {
     }
 
     if (findNote.createdBy.id !== userId) {
-      throw new HttpException(409, "You can't share a note you don't own");
+      if (!findNote.isResharable) {
+        throw new HttpException(409, "You can't share a note you don't own");
+      }
     }
 
     const user: UserEntity = await getRepository(this.users).findOne(userId);

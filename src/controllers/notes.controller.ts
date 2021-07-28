@@ -29,6 +29,17 @@ class NotesController {
     }
   };
 
+  public getNotesShared = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const noteData: ShareNoteDto = req.body;
+      const findAllNotesData = await this.noteService.findAllNotesShared(Number(noteData.userId));
+
+      res.status(200).json({ data: findAllNotesData, message: 'findAllNotesShared' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public getNoteById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const noteId = req.params.id;
